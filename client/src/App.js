@@ -2,16 +2,20 @@ import {BrowserRouter, Route, Routes} from 'react-router-dom'
 
 import './App.css';
 import Home from './components/Home';
-
+import Login from './components/Login';
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
     <BrowserRouter>
-      <div id='App' className="App">
+      
        <Routes>
-       <Route exact path='/'element={<Home />} />
+        <Route element={<ProtectedRoute />}>
+          <Route exact path="/" element={<Home />} />
+        </Route>
+        <Route exact path="/login" element={<Login />} />
        </Routes>
-    </div>
+    
     </BrowserRouter>
   );
 }

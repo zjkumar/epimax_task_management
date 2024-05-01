@@ -5,6 +5,9 @@ const cors = require('cors')
 const app = express();
 const port = 3000;
 
+const jwt = require('jsonwebtoken');
+const secretKey = 'your_secret_key';
+
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
 
@@ -23,36 +26,126 @@ const pool = mysql.createPool({
 //Route to create a new user
 app.post('/create-user', (req, res) => {
     
-    const {fullName, username} = req.body;
-    for (let i = 0; i < 50; i++){
-        console.log(fullName, username, 'this is data from client')
-    }
-    console.log(req)
-    pool.query('INSERT INTO users (full_name, username) VALUES(?, ?)', [fullName, username], (error, results, fields) => {
+    const {fullname, username} = req.body;
+    
+    // Check if the username is unique
+    pool.query('SELECT * FROM users WHERE username = ?', [username], (error, results, fields) => {
         if (error) {
-            console.error('Error creating user:', error);
-            res.status(500).json({error: 'Failed to create user'});
+            console.error('Error checking username uniqueness:', error);
+            res.status(500).json({error: 'Failed to check username uniqueness'});
             return;
         }
-        res.json({success: true})
-    })
-})
+
+        if (results.length > 0) {
+            // Username already exists
+            res.status(400).json({error: 'Username must be unique'});
+            return;
+        }
+
+        // Username is unique, proceed with user creation
+        // Inserting new user into 'users' table
+        pool.query('INSERT INTO users (full_name, username) VALUES(?, ?)', [fullname, username], (error, results, fields) => {
+            if (error) {
+                console.error('Error creating user:', error);
+                res.status(500).json({error: 'Failed to create user'});
+                return;
+            }
+            
+            // Creating new tables for the user
+            const userId = results.insertId;
+            createTables(userId, (err) => {
+                if (err) {
+                    console.error('Error creating tables:', err);
+                    res.status(500).json({error: 'Failed to create tables'});
+                    return;
+                }
+                
+                // Generate JWT token
+                const token = jwt.sign({ userId }, secretKey, { expiresIn: '1h' }); // Adjust expiration time as needed
+                
+                // Send token as response
+                res.json({ success: true, token });
+            });
+        });
+    });
+});
+
+
+function createTables(userId, callback) {
+    const sectionsTable = `sections_${userId}`;
+    const tasksTable = `tasks_${userId}`;
+    const myTasksTable = `mytasks_${userId}`;
+
+    // Creating sections table
+    const createSectionsTableQuery = `CREATE TABLE ${sectionsTable} (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        section_name TEXT
+    )`;
+
+    // Creating tasks table
+    const createTasksTableQuery = `CREATE TABLE ${tasksTable} (
+        task_id INT AUTO_INCREMENT PRIMARY KEY,
+        section_id INT,
+        task_name TEXT,
+        assignee VARCHAR(255),
+        priority VARCHAR(255),
+        FOREIGN KEY (section_id) REFERENCES ${sectionsTable}(id)
+    )`;
+
+    // Creating myTasks table
+    const createMyTasksTableQuery = `CREATE TABLE ${myTasksTable} (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        task_id INT,
+        FOREIGN KEY (task_id) REFERENCES ${tasksTable}(task_id)
+    )`;
+
+    // Inserting initial data into sections table
+    const insertSectionsDataQuery = `INSERT INTO ${sectionsTable} (section_name) VALUES ?`;
+    const sectionsData = [
+        ['To Do'],
+        ['Doing'],
+        ['Done']
+    ];
+
+    // Executing queries to create tables and insert initial data
+    pool.query(createSectionsTableQuery, (err1, results1) => {
+        if (err1) {
+            callback(err1);
+            return;
+        }
+        pool.query(createTasksTableQuery, (err2, results2) => {
+            if (err2) {
+                callback(err2);
+                return;
+            }
+            pool.query(createMyTasksTableQuery, (err3, results3) => {
+                if (err3) {
+                    callback(err3);
+                    return;
+                }
+                pool.query(insertSectionsDataQuery, [sectionsData], (err4, results4) => {
+                    if (err4) {
+                        callback(err4);
+                        return;
+                    }
+                    callback(null); // Tables created and data inserted successfully
+                });
+            });
+        });
+    });
+}
 
 
 // Route to login the user
 app.post('/login', (req, res) => {
     
     const {username} = req.body;
-    // console.log(req)
-    // for (let i = 0; i < 10; i ++){
-        
-    //     console.log(username, 'this is username')
-    // }
+    
 
-    pool.query(`SELECT * FROM user WHERE username = '${username}'`, (error, results, fields) => {
+    pool.query(`SELECT * FROM users WHERE username = '${username}'`, (error, results, fields) => {
         if (error) {
-            console.error('Error creating user:', error);
-            res.status(500).json({error: 'Failed to create user'});
+            console.error('Error finding user:', error);
+            res.status(500).json({error: 'Failed to find user'});
             return;
         }
         if (results.length === 0){

@@ -193,6 +193,27 @@ app.post('/modifySection', getUserIdFromToken, async (req, res) => {
 })
 
 
+// Route to create a new section
+
+app.post('/createNewSection', getUserIdFromToken, async(req, res) => {
+    const {userId} = req
+    const {userInput} = req.body
+
+    const insertSectionQuery = `INSERT INTO sections_${userId} (section_name) VALUES (?)`;
+    pool.query(insertSectionQuery, [userInput], (error, result) => {
+        if (error) {
+            console.error('Error creating section:', error);
+            res.status(500).json({ error: 'Failed to create section' });
+            return;
+        }
+
+        console.log('Section created successfully');
+        res.json({ success: true });
+    });
+
+})
+
+
 // Route to delete a section
 
 app.delete('/deleteSection', getUserIdFromToken, async(req, res) => {

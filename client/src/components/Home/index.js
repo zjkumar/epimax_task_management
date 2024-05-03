@@ -635,49 +635,77 @@ class Home extends Component{
         overlayForSectionOptions.appendChild(sectionOptionsCard)
     }
 
-    clientRequestToCreateSection = async (section_id, userInput) {
 
+    clientRequestToCreateSection = async (userInput) => {
+
+        const url = 'http://localhost:3000/createNewSection'
+        const token = Cookies.get('jwt_token')
+        const details = { userInput}
+    
+        console.log({userInput})
+    
+        const options = {
+            method: 'POST',
+            headers: {
+                'authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(details)
+        }
+    
+        const response = await fetch(url, options)
+        const data = await response.json()
+    
+        if (response.ok === true){
+            console.log('update success')
+            this.fetchSectionsAndTasks()
+        }else{
+            console.log(data)
+        }
+    
     }
-
+    
+    
+    
     createNewSection = () => {
         const overlayToCreateSection = this.createOverlay()
         overlayToCreateSection.classList.add('home-overlay')
-
+    
         document.body.appendChild(overlayToCreateSection)
-
+    
         // create a card to display on the current overlay
         const cardToCreateSection = this.createCardOnOverlay()
         cardToCreateSection.classList.add('overlay-card')
-
-
+    
+    
         overlayToCreateSection.appendChild(cardToCreateSection)
-
-
+    
+    
         // create label and input elements 
         const inputsToCreate = this.createLabelInputs(['Name of Your Section'])
         cardToCreateSection.appendChild(inputsToCreate)
-
+    
         const buttonsHolder =  document.createElement('div') 
         cardToCreateSection.appendChild(buttonsHolder)
         
         const saveBtn = document.createElement('button')
         saveBtn.textContent = 'Save'
         saveBtn.classList.add('save-btn')
-
+    
         const cancelBtn = document.createElement('button')
         cancelBtn.textContent = 'Cancel'
         cancelBtn.classList.add('cancel-btn')
-
+    
         buttonsHolder.appendChild(saveBtn)
         buttonsHolder.appendChild(cancelBtn)
-
-
+    
+    
         
         saveBtn.addEventListener('click', event => {
             let errorElId = 'errorParaEl'
             event.preventDefault()
             event.stopPropagation()
-
+    
             const userInput = document.getElementById('Name of Your Section').value
             
             let errorEl = document.createElement('p')
@@ -700,7 +728,7 @@ class Home extends Component{
             }
             errorEl.textContent = ''
             document.body.removeChild(overlayToCreateSection)
-            this.clientRequestToCreateSection(section_id, userInput)
+            this.clientRequestToCreateSection(userInput)
         })
         cancelBtn.addEventListener('click', event => {
             event.preventDefault()
@@ -708,6 +736,7 @@ class Home extends Component{
             document.body.removeChild(overlayToCreateSection)           
         })
     }
+    
 
     render(){
         const {sections} = this.state
@@ -724,7 +753,7 @@ class Home extends Component{
                         <p className='table-col-priority'>Priority</p>
                     </div>
                     <div className='create-new-section-box'>
-                        <button className='create-new-section-btn' onClick={this.createNewSection()}>Create New Section</button>
+                        <button className='create-new-section-btn' onClick={this.createNewSection}>Create New Section</button>
                     </div>
                     {sections.map(eachSectionObj => {
                         const {section_id, section_name, tasks} = eachSectionObj

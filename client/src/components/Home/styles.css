@@ -1,0 +1,123 @@
+
+.home {
+    padding: 25px;
+}
+.loading-screen{
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.task-section{
+    margin-top: 35px;
+}
+
+.table-columns{
+    display: flex;
+}
+.task{
+    display: flex;
+
+}
+
+.table-col-name{
+    min-width: 65%;
+    max-width: 65%;
+}
+
+.table-col-assignee, .table-col-priority{
+    min-width: 15%;
+    max-width: 15%;
+}
+
+.table-col-name, .table-col-assignee, .table-col-priority {
+    border: solid 1px black;
+    padding: 15px;
+    border-radius: 2px;
+}
+
+.updatable-col:hover{
+    cursor: pointer; /* Show pointer cursor on hover */
+    background-color: lightgray;
+    border: solid 3px lightblue;
+}
+
+.table-col-name {
+    border-left: none;
+}
+
+.table-col-priority{
+    border-right: none
+}
+ .task-col-name {
+    padding-left: 45px;
+ }
+.section-name-btn-div{
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.add-task-plus-btn{
+    background-color: transparent;
+    margin-left: 10px;
+    font-size: 22px;
+    height: 22px;
+    width: 22px;
+    border: none;
+    border-radius: 3px;
+}
+
+.add-task-plus-btn:hover {
+    cursor: pointer; /* Show pointer cursor on hover */
+    background-color: lightgray; /* Change background color on hover */
+}
+
+
+
+.task-overlay, .update-task-overlay {
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.task-card {
+    
+    background-color: #E9DC92;
+    border-radius: 10px;
+    margin-top: 39px;
+    padding: 20px;
+    box-shadow: 0 0 18px 1px ;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.input-container{
+    margin-bottom: 15px;
+}
+
+.task-error, .update-task-error{
+    color: red;
+    font-size: 16px;
+}
+
+.save-btn, .cancel-btn {
+    border: none;
+    /* padding: px; */
+    border-radius: 8px;
+    width: 80px;
+    height: 28px;
+    font-size: 14px;
+    color: black;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.save-btn {
+    background-color: rgb(167, 125, 204);
+}
+
+.cancel-btn{
+    background-color: red;
+}

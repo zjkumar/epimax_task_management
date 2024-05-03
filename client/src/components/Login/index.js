@@ -1,7 +1,6 @@
 import {Component} from 'react'
 import {Navigate} from 'react-router-dom'
 import Cookies from 'js-cookie'
-
 import withRouter from '../withRouter'
 
 import './index.css'
@@ -33,6 +32,8 @@ class Login extends Component {
     Cookies.set('jwt_token', jwtToken, {
       expires: 30,
     })
+    console.log(jwtToken, 'this is response as jwt token')
+    console.log(Cookies.get('jwt_token'))
     navigate("/")
   }
 
@@ -50,6 +51,7 @@ class Login extends Component {
 
   login = async () => {
     const {username} = this.state
+    console.log(username, 'this is username')
     const userDetails = {username}
     if ( username === ''){
         this.setState({showLoginError: true})
@@ -60,10 +62,14 @@ class Login extends Component {
 
     const options = {
       method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(userDetails),
     }
     const response = await fetch(apiUrl, options)
     const data = await response.json()
+    // console.log(data)
    
     if (response.ok === true) {
       this.onLoginSuccess(data.jwt_token)
@@ -79,8 +85,6 @@ class Login extends Component {
             this.setState({showJoiningError: true})
             return
         }
-
-        console.log(fullname, username, 'these are user inputs')
 
         let details = {
             fullname, username

@@ -1,7 +1,12 @@
+import Cookies from 'js-cookie'
+import { useNavigate } from 'react-router-dom';
+
 import './styles.css'
 
 const Profile = () => {
+    const navigate = useNavigate();
     const displayOverlayWithCard = () => {
+       
        let overlay = document.createElement('div')
        overlay.setAttribute('id', 'overlay')
        overlay.classList.add('overlay')
@@ -16,6 +21,13 @@ const Profile = () => {
        nameEl.textContent = 'ganesh'
 
        let logoutBtn = document.createElement('button')
+       logoutBtn.onclick = function(){
+        console.log('logout clicked')
+        
+        Cookies.remove('jwt_token')
+        navigate('/login')
+       }
+
        logoutBtn.textContent = 'logout'
 
        profileCard.appendChild(nameEl)

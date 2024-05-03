@@ -23,6 +23,38 @@ const pool = mysql.createPool({
     database: 'u109247860_epimax'
 });
 
+
+// middleware to extract user ID from JWT token
+const getUserIdFromToken = (request, response, next) => {
+    let jwt_token;
+    
+  const authHeader = request.headers["authorization"];
+//   console.log(authHeader)
+  if (authHeader !== undefined) {
+    jwt_token = authHeader.split(" ")[1];
+    // console.log(jwt_token)
+  }
+  if (jwt_token === undefined) {
+    response.status(401);
+    response.send("Invalid JWT Token");
+  } else {
+    jwt.verify(jwt_token, secretKey, async (error, payload) => {
+      if (error) {
+        console.log(error)
+        console.log('error occured here')
+        response.status(401);
+        response.send("Invalid JWT Token");
+      } else {
+        // for (let i=0; i<30; i++){
+        //     console.log(payload.userId, 'this is payload userId')
+        // }
+        request.userId = payload.userId;
+        next();
+      }
+    });
+  }
+}
+
 //Route to create a new user
 app.post('/create-user', (req, res) => {
     
@@ -61,7 +93,7 @@ app.post('/create-user', (req, res) => {
                 }
                 
                 // Generate JWT token
-                const token = jwt.sign({ userId }, secretKey, { expiresIn: '1h' }); // Adjust expiration time as needed
+                const token = jwt.sign({ userId }, secretKey, { expiresIn: "30d" }); // Adjust expiration time as needed
                 
                 // Send token as response
                 res.json({ success: true, token });
@@ -136,12 +168,61 @@ function createTables(userId, callback) {
 }
 
 
+//Route to update a task
+app.post('/updateTask', getUserIdFromToken, async (req, res) => {
+
+    const {userId} = req
+    
+    const { task_id, section_id, columnName, userInput } = req.body;
+
+
+
+    console.log({ task_id, section_id, columnName, userInput, userId })
+    
+    // Validate assignee if the column to be updated is 'assignee'
+    if (columnName === 'assignee') {
+        const assigneeQuery = 'SELECT id FROM users WHERE username = ?';
+        try {
+            const assigneeRows =   pool.query(assigneeQuery, [userInput]);
+            if (assigneeRows.length === 0) {
+                res.status(400).json({ error: 'Assignee not found' });
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking assignee:', error);
+            res.status(500).json({ error: 'Failed to update task' });
+            return;
+        }
+    }
+
+    // Construct the update query dynamically based on the column name and user input
+    const updateQuery = `
+        UPDATE tasks_${userId}
+        SET ${columnName} = ?
+        WHERE task_id = ? AND section_id = ?`;
+
+    // Execute the update query with user input, task ID, and section ID
+    pool.query(updateQuery, [userInput, task_id, section_id], (error, results, fields) => {
+        if (error) {
+            console.error('Error updating task:', error);
+            res.status(500).json({ error: 'Failed to update task' });
+            return;
+        }
+
+        console.log('Task updated successfully');
+        res.json({ success: true });
+    });
+});
+
+
+
+
+
 // Route to login the user
 app.post('/login', (req, res) => {
     
     const {username} = req.body;
-    
-
+   
     pool.query(`SELECT * FROM users WHERE username = '${username}'`, (error, results, fields) => {
         if (error) {
             console.error('Error finding user:', error);
@@ -152,49 +233,112 @@ app.post('/login', (req, res) => {
             res.status(400).json({error: 'User not found'});
             return; 
         }
-        res.json({success: true})
+        const userId = results[0].id;
+        const jwt_token = jwt.sign({ userId }, secretKey, { expiresIn: "30d" }); // Adjust expiration time as needed
+        
+        res.json({success: true, jwt_token})
     })
 })
 
-// Route to send message data to database
-app.post('/send-message', (req, res) => {
-    const { sender, receiver, message } = req.body;
-    // Insert message into database
-    pool.query('INSERT INTO message (sender, receiver, message) VALUES (?, ?, ?)', [sender, receiver, message], (error, results, fields) => {
+
+
+
+app.get('/', getUserIdFromToken, (req, res) => {
+    // Get the user ID from the request (assuming it's included in the JWT token)
+    const userId = req.userId; // Implement this function to extract user ID from JWT token
+
+    // Query to fetch sections and their related tasks for the current user
+    const sectionsQuery = `
+        SELECT s.id AS section_id, s.section_name, t.task_id, t.task_name, t.assignee, t.priority
+        FROM sections_${userId} AS s
+        LEFT JOIN tasks_${userId} AS t ON s.id = t.section_id
+        ORDER BY s.id, t.task_id`;
+
+    // Execute the query
+    pool.query(sectionsQuery, (error, results, fields) => {
         if (error) {
-            console.error('Error inserting message:', error);
-            res.status(500).json({ error: 'Failed to send message' });
+            console.error('Error fetching sections:', error);
+            res.status(500).json({error: 'Failed to fetch sections'});
             return;
         }
-        res.json({ success: true });
+
+        // Process the results to organize sections and tasks
+        const sections = {};
+        results.forEach(row => {
+            const { section_id, section_name, task_id, task_name, assignee, priority } = row;
+            if (!sections[section_id]) {
+                sections[section_id] = { section_id,  section_name, tasks: [] };
+            }
+            if (task_id) {
+                sections[section_id].tasks.push({ task_id, task_name, assignee, priority });
+            }
+        });
+
+        // Convert sections object to an array
+        const sectionsArray = Object.values(sections);
+
+        // Send the sections and tasks as response
+        res.json({ sections: sectionsArray });
     });
 });
 
-app.post('/get-message', (req, res) => {
-    const {username, time} = req.body
-    pool.query(`SELECT message,time FROM message WHERE receiver = '${username}' and time > '${time}' `, (error, results, fields) => {
+
+app.post('/save-task', getUserIdFromToken, (req, res) => {
+    const {userId} = req
+
+    if (!userId) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+
+    const { section_id, task, priority, assignee } = req.body;
+
+    // Inserting task into tasks_${userId} table
+    const taskInsertQuery = `
+        INSERT INTO tasks_${userId} (section_id, task_name, assignee, priority) 
+        VALUES (?, ?, ?, ?)`;
+
+    pool.query(taskInsertQuery, [section_id, task, assignee, priority], (error, results, fields) => {
         if (error) {
-            console.error('Error creating user:', error);
-            res.status(500).json({error: 'Failed to create user'});
+            console.error('Error saving task:', error);
+            res.status(500).json({ error: 'Failed to save task' });
             return;
         }
-        let modifiedResults = results.filter(eachResult => eachResult.time > time)
-        res.json({success: true, results: modifiedResults})
-    })
-})
 
+        const taskId = results.insertId;
 
-app.post('/get-message-until-latest-time', (req, res) => {
-    const {username} = req.body
-    pool.query(`SELECT message,time FROM message WHERE receiver = '${username}' `, (error, results, fields) => {
-        if (error) {
-            console.error('Error creating user:', error);
-            res.status(500).json({error: 'Failed to create user'});
-            return;
+        // If assignee is provided, insert task into mytasks_${assignee} table
+        if (assignee) {
+            const assigneeIdQuery = `SELECT id FROM users WHERE username = ?`;
+            pool.query(assigneeIdQuery, [assignee], (error, results, fields) => {
+                if (error) {
+                    console.error('Error finding assignee:', error);
+                    res.status(500).json({ error: 'Failed to find assignee' });
+                    return;
+                }
+
+                if (results.length === 0) {
+                    res.status(400).json({ error: 'Assignee not found' });
+                    return;
+                }
+
+                const assigneeId = results[0].id;
+                const myTasksInsertQuery = `INSERT INTO mytasks_${assigneeId} (task_id) VALUES (?)`;
+                pool.query(myTasksInsertQuery, [taskId], (error, results, fields) => {
+                    if (error) {
+                        console.error('Error saving task for assignee:', error);
+                        res.status(500).json({ error: 'Failed to save task for assignee' });
+                        return;
+                    }
+                    res.json({ success: true });
+                });
+            });
+        } else {
+            res.json({ success: true });
         }
-        res.json({success: true, results: results})
-    })
-})
+    });
+});
+
 
 
 // Start the server

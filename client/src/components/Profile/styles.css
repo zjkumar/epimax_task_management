@@ -12,7 +12,8 @@
 
 .profile-card, .overlay-card{
     border-radius: 10px;
-    margin-top: 39px;
+    margin-right: 40px;
+    margin-top: 80px;
     background-color: bisque;
     padding: 20px;
     box-shadow: 0 0 18px 1px ;
@@ -55,4 +56,20 @@
 
 .profile-img{
     max-width: 100%;
+}
+
+.username{
+    text-decoration: underline;
+    margin-bottom: 25px;
+}
+
+.logout-btn{
+    background-color: rgb(193, 73, 218);
+    border: none;
+    color: rgb(53, 37, 37);
+    border-radius: 6px;
+    padding: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    
 }

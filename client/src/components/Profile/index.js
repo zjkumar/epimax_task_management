@@ -8,6 +8,8 @@ const Profile = () => {
 
     const displayOverlayWithCard = () => {
        
+        const username = Cookies.get('username')
+
        let overlay = document.createElement('div')
        overlay.setAttribute('id', 'overlay')
        overlay.classList.add('overlay')
@@ -19,7 +21,8 @@ const Profile = () => {
        profileCard.classList.add('profile-card')
 
        let nameEl = document.createElement('p')
-       nameEl.textContent = 'ganesh'
+       nameEl.textContent = username
+       nameEl.classList.add('username')
 
        let logoutBtn = document.createElement('button')
        logoutBtn.onclick = function(){
@@ -29,7 +32,8 @@ const Profile = () => {
         navigate('/login')
        }
 
-       logoutBtn.textContent = 'logout'
+       logoutBtn.textContent = 'Logout'
+       logoutBtn.classList.add('logout-btn')
 
        profileCard.appendChild(nameEl)
        profileCard.appendChild(logoutBtn)

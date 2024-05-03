@@ -96,7 +96,7 @@ app.post('/create-user', (req, res) => {
                 const token = jwt.sign({ userId }, secretKey, { expiresIn: "30d" }); // Adjust expiration time as needed
                 
                 // Send token as response
-                res.json({ success: true, token });
+                res.json({ success: true, token, username });
             });
         });
     });
@@ -326,7 +326,7 @@ app.post('/login', (req, res) => {
         const userId = results[0].id;
         const jwt_token = jwt.sign({ userId }, secretKey, { expiresIn: "30d" }); // Adjust expiration time as needed
         
-        res.json({success: true, jwt_token})
+        res.json({success: true, jwt_token, username})
     })
 })
 

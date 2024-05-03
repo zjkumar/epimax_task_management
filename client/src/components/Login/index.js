@@ -15,36 +15,24 @@ class Login extends Component {
   onChangeUsername = event => this.setState({username: event.target.value})
   
 
-  onSubmitSuccess = jwtToken => {
-    const { navigate } = this.props;
-    Cookies.set('jwt_token', jwtToken, {
-      expires: 30,
-    })
-    navigate("/")
-  }
+  onLoginSuccess = (jwtToken, username) => {
 
-  onSubmitFailure = errorMsg => {
-    this.setState({errorMsg, showSubmitError: true})
-  }
-
-  onLoginSuccess = jwtToken => {
     const { navigate } = this.props;
-    Cookies.set('jwt_token', jwtToken, {
-      expires: 30,
-    })
-    console.log(jwtToken, 'this is response as jwt token')
-    console.log(Cookies.get('jwt_token'))
+    Cookies.set('jwt_token', jwtToken)
+    Cookies.set('username', username)
     navigate("/")
+  
   }
 
   onLoginFailure = errMsg => this.setState({showLoginError: true, loginErrorMsg: errMsg})
 
-  onJoinSuccess = jwtToken => {
-    const {history} = this.props
-    Cookies.set('jwt_token', jwtToken, {
-      expires: 30,
-    })
-    history.replace('/')
+  onJoinSuccess = (jwtToken, username) => {
+    
+    const { navigate } = this.props;
+    Cookies.set('jwt_token', jwtToken)
+    Cookies.set('username', username)
+    navigate("/")
+  
   }
 
   onJoinFailure = errMsg => this.setState({showJoiningError: true, joinErrorMsg: errMsg})
@@ -72,7 +60,7 @@ class Login extends Component {
     // console.log(data)
    
     if (response.ok === true) {
-      this.onLoginSuccess(data.jwt_token)
+      this.onLoginSuccess(data.jwt_token, data.username)
     } else {
       this.onLoginFailure(data.error)
     }
@@ -105,7 +93,7 @@ class Login extends Component {
         console.log(data)
 
         if (response.ok === true) {
-            this.onJoinSuccess(data.jwt_token)
+            this.onJoinSuccess(data.jwt_token, data.username)
           } else {
             this.onJoinFailure(data.error)
           }

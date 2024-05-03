@@ -205,3 +205,27 @@
 .no-btn{
     background-color: green;
 }
+
+.create-new-section-box{
+    margin: 35px 0px 15px 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+.create-new-section-box:hover {
+    background-color: black;
+}
+
+
+.create-new-section-btn{
+    width: 50%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background-color: #eed960;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+}

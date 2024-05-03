@@ -29,6 +29,7 @@ const Profile = () => {
         console.log('logout clicked')
         
         Cookies.remove('jwt_token')
+        Cookies.remove('username')
         navigate('/login')
        }
 

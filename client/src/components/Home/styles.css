@@ -21,21 +21,60 @@
 
 }
 
-.table-col-name{
-    min-width: 65%;
-    max-width: 65%;
+@media (min-width: 320px ) and ( max-width: 768px){
+    .table-col-name{
+        min-width: 50%;
+        max-width: 50%;
+        
+    }
+    
+    .table-col-assignee, .table-col-priority{
+        min-width: 25%;
+        max-width: 25%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
 }
 
-.table-col-assignee, .table-col-priority{
-    min-width: 15%;
-    max-width: 15%;
+@media (min-width: 320px ) {
+    .table-col-assignee, .table-col-priority{
+       
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 }
+
+@media (min-width: 320px ) and ( max-width: 500px) {
+    
+    
+    .table-col-name, .table-col-assignee, .table-col-priority{
+        font-size: 12px !important;
+    }
+}
+
 
 .table-col-name, .table-col-assignee, .table-col-priority {
     border: solid 1px black;
     padding: 15px;
     border-radius: 2px;
 }
+
+@media (min-width: 769px ){
+    .table-col-name{
+        min-width: 65%;
+        max-width: 65%;
+    }
+    
+    .table-col-assignee, .table-col-priority{
+        min-width: 15%;
+        max-width: 15%;
+    }
+    
+}
+
 
 .updatable-col:hover{
     cursor: pointer; /* Show pointer cursor on hover */
@@ -103,7 +142,7 @@
     font-size: 16px;
 }
 
-.save-btn, .cancel-btn {
+.save-btn, .cancel-btn, .yes-btn, .no-btn {
     border: none;
     /* padding: px; */
     border-radius: 8px;
@@ -142,4 +181,27 @@
 .error-msg{
     color: red;
     font-size: 14px;
+}
+
+.card-to-delete-section{
+    max-width: 65%;
+    margin: auto;
+}
+
+.card-to-delete-section h1{
+    margin-bottom: 15px;
+}
+
+@media (max-width: 768px){
+    .card-to-delete-section h1{
+        font-size: 14px;
+    }
+}
+
+.yes-btn {
+    background-color: red;
+}
+
+.no-btn{
+    background-color: green;
 }

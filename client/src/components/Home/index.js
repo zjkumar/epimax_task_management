@@ -448,6 +448,34 @@ class Home extends Component{
         }
     }
 
+    deleteSection = async (section_id) => {
+        const url = 'http://localhost:3000/deleteSection'
+        const token = Cookies.get('jwt_token')
+        const details = { section_id}
+
+        console.log({section_id})
+
+        const options = {
+            method: 'DELETE',
+            headers: {
+                'authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'section_id' : section_id
+            }
+        }
+
+        const response = await fetch(url, options)
+        const data = await response.json()
+
+        if (response.ok === true){
+            console.log('Section deleted successfully')
+            this.fetchSectionsAndTasks()
+        }else{
+            console.log(data)
+        }
+    }
+
+
     displayOptionsForSection = (section_id) => {
         const overlayForSectionOptions = this.createOverlay()
         overlayForSectionOptions.classList.add('home-overlay')
@@ -542,7 +570,143 @@ class Home extends Component{
                 document.body.removeChild(overlayToRenameSection)           
             })
         })
+
+        
+
+        deleteSectionBtn.addEventListener('click', event => {
+            event.preventDefault(); // Prevent default form submission behavior
+            event.stopPropagation(); // Stop event propagation to parent elements
+            
+            // create overlay on top of current overlay
+            const overlayToDeleteSection = this.createOverlay()
+            overlayToDeleteSection.classList.add('home-overlay')
+
+            document.body.appendChild(overlayToDeleteSection)
+
+            // create a card to display on the current overlay
+            const cardToDeleteSection = this.createCardOnOverlay()
+            cardToDeleteSection.classList.add('overlay-card', 'card-to-delete-section')
+
+
+            overlayToDeleteSection.appendChild(cardToDeleteSection)
+
+
+            // create a caution message asking the user if he/she wants to delete the section 
+            const cautionEl = document.createElement('h1');
+            cautionEl.textContent = 'Are you sure you want to delete the section ? All the tasks of the section will be deleted. Select "Yes" to "Delete" the section and "No" to "Cancel"'
+            cardToDeleteSection.appendChild(cautionEl)
+
+
+
+
+            const buttonsHolder =  document.createElement('div') 
+            cardToDeleteSection.appendChild(buttonsHolder)
+            
+            const yesBtn = document.createElement('button')
+            yesBtn.textContent = 'Yes'
+            yesBtn.classList.add('yes-btn')
+
+            const noBtn = document.createElement('button')
+            noBtn.textContent = 'No'
+            noBtn.classList.add('no-btn')
+
+            buttonsHolder.appendChild(yesBtn)
+            buttonsHolder.appendChild(noBtn)
+
+
+            
+            yesBtn.addEventListener('click', event => {
+                event.preventDefault()
+                event.stopPropagation()
+
+                document.body.removeChild(overlayToDeleteSection)
+                document.body.removeChild(overlayForSectionOptions)
+                this.deleteSection(section_id)
+            })
+
+            noBtn.addEventListener('click', event => {
+                event.preventDefault()
+                event.stopPropagation()
+                document.body.removeChild(overlayToDeleteSection)    
+                document.body.removeChild(overlayForSectionOptions)       
+            })
+        })
+
         overlayForSectionOptions.appendChild(sectionOptionsCard)
+    }
+
+    clientRequestToCreateSection = async (section_id, userInput) {
+
+    }
+
+    createNewSection = () => {
+        const overlayToCreateSection = this.createOverlay()
+        overlayToCreateSection.classList.add('home-overlay')
+
+        document.body.appendChild(overlayToCreateSection)
+
+        // create a card to display on the current overlay
+        const cardToCreateSection = this.createCardOnOverlay()
+        cardToCreateSection.classList.add('overlay-card')
+
+
+        overlayToCreateSection.appendChild(cardToCreateSection)
+
+
+        // create label and input elements 
+        const inputsToCreate = this.createLabelInputs(['Name of Your Section'])
+        cardToCreateSection.appendChild(inputsToCreate)
+
+        const buttonsHolder =  document.createElement('div') 
+        cardToCreateSection.appendChild(buttonsHolder)
+        
+        const saveBtn = document.createElement('button')
+        saveBtn.textContent = 'Save'
+        saveBtn.classList.add('save-btn')
+
+        const cancelBtn = document.createElement('button')
+        cancelBtn.textContent = 'Cancel'
+        cancelBtn.classList.add('cancel-btn')
+
+        buttonsHolder.appendChild(saveBtn)
+        buttonsHolder.appendChild(cancelBtn)
+
+
+        
+        saveBtn.addEventListener('click', event => {
+            let errorElId = 'errorParaEl'
+            event.preventDefault()
+            event.stopPropagation()
+
+            const userInput = document.getElementById('Name of Your Section').value
+            
+            let errorEl = document.createElement('p')
+            errorEl.setAttribute("id", errorElId)
+            
+            
+            if (userInput === ''){
+                const hasChildWithId = Array.from(cardToCreateSection.children).some(child => child.id === 'errorParaEl');
+                
+                const errMsg = 'Section name cannot be empty'
+                errorEl.textContent = errMsg
+                                
+                if (hasChildWithId){
+                    return
+                }else{
+                    cardToCreateSection.appendChild(errorEl)
+                    errorEl.classList.add('error-msg')
+                }
+                return
+            }
+            errorEl.textContent = ''
+            document.body.removeChild(overlayToCreateSection)
+            this.clientRequestToCreateSection(section_id, userInput)
+        })
+        cancelBtn.addEventListener('click', event => {
+            event.preventDefault()
+            event.stopPropagation()
+            document.body.removeChild(overlayToCreateSection)           
+        })
     }
 
     render(){
@@ -558,6 +722,9 @@ class Home extends Component{
                         <p className='table-col-name'>Task Name</p>
                         <p className='table-col-assignee'>Assignee</p>
                         <p className='table-col-priority'>Priority</p>
+                    </div>
+                    <div className='create-new-section-box'>
+                        <button className='create-new-section-btn' onClick={this.createNewSection()}>Create New Section</button>
                     </div>
                     {sections.map(eachSectionObj => {
                         const {section_id, section_name, tasks} = eachSectionObj

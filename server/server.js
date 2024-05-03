@@ -193,14 +193,58 @@ app.post('/modifySection', getUserIdFromToken, async (req, res) => {
 })
 
 
+// Route to delete a section
+
+app.delete('/deleteSection', getUserIdFromToken, async(req, res) => {
+    const {userId} = req
+    
+    const section_id = req.headers["section_id"];
+
+    console.log({ section_id, userId })
+
+    const deleteMyTasksQuery = `
+        DELETE FROM mytasks_${userId} 
+        WHERE task_id IN (SELECT task_id FROM tasks_${userId} WHERE section_id = ?)`;
+
+
+    pool.query(deleteMyTasksQuery, [section_id], (error, myTaskResult) => {
+        if (error) {
+            console.error('Error deleting my tasks:', error);
+            res.status(500).json({ error: 'Failed to delete section and tasks' });
+            return;
+        }
+
+        // Delete tasks related to the section from tasks_${userId} table
+        const deleteTasksQuery = `DELETE FROM tasks_${userId} WHERE section_id = ?`;
+        pool.query(deleteTasksQuery, [section_id], (error, taskResult) => {
+            if (error) {
+                console.error('Error deleting tasks:', error);
+                res.status(500).json({ error: 'Failed to delete section and tasks' });
+                return;
+            }
+
+            // Delete the section from sections_${userId} table
+            const deleteSectionQuery = `DELETE FROM sections_${userId} WHERE id = ?`;
+            pool.query(deleteSectionQuery, [section_id], (error, sectionResult) => {
+                if (error) {
+                    console.error('Error deleting section:', error);
+                    res.status(500).json({ error: 'Failed to delete section and tasks' });
+                    return;
+                }
+
+                console.log('Section and related tasks deleted successfully');
+                res.json({ success: true });
+            });
+        });
+    });
+})
+
 //Route to update a task
 app.post('/updateTask', getUserIdFromToken, async (req, res) => {
 
     const {userId} = req
     
     const { task_id, section_id, columnName, userInput } = req.body;
-
-    
 
     console.log({ task_id, section_id, columnName, userInput, userId })
     

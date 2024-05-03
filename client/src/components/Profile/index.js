@@ -5,6 +5,7 @@ import './styles.css'
 
 const Profile = () => {
     const navigate = useNavigate();
+
     const displayOverlayWithCard = () => {
        
        let overlay = document.createElement('div')
@@ -42,7 +43,9 @@ const Profile = () => {
     }
     return (
         <div className="profile">
-            <button type='button' className='profile-btn' onClick={displayOverlayWithCard}>{''}</button>
+            <button type='button' className='profile-btn' onClick={displayOverlayWithCard}>
+                <img src='https://res.cloudinary.com/n0ta10sear/image/upload/v1714741836/user-avatar_fops30.png' alt='avatar' className='profile-img' />
+            </button>
             <button type='button' className='arrow-btn' onClick={displayOverlayWithCard}>{'>'}</button>
         </div>
     )

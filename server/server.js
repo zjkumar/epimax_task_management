@@ -167,6 +167,31 @@ function createTables(userId, callback) {
     });
 }
 
+// Route to modify the section name
+app.post('/modifySection', getUserIdFromToken, async (req, res) => {
+    const {userId} = req
+    const {section_id, userInput} = req.body
+
+    console.log({ section_id, userInput, userId })
+
+    const updateQuery = `
+        UPDATE sections_${userId}
+        SET section_name = ?
+        WHERE id = ?`;
+
+    pool.query(updateQuery, [userInput, section_id], (error, results, fields) => {
+        if (error) {
+            console.error('Error updating section:', error);
+            res.status(500).json({ error: 'Failed to update section name' });
+            return;
+        }
+
+        console.log('Section Name Updated successfully');
+        res.json({ success: true });
+    });
+
+})
+
 
 //Route to update a task
 app.post('/updateTask', getUserIdFromToken, async (req, res) => {
@@ -175,7 +200,7 @@ app.post('/updateTask', getUserIdFromToken, async (req, res) => {
     
     const { task_id, section_id, columnName, userInput } = req.body;
 
-
+    
 
     console.log({ task_id, section_id, columnName, userInput, userId })
     

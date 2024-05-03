@@ -59,29 +59,30 @@
     margin-bottom: 10px;
 }
 
-.add-task-plus-btn{
+.add-task-plus-btn, .section-options-three-dots-btn{
     background-color: transparent;
-    margin-left: 10px;
-    font-size: 22px;
-    height: 22px;
-    width: 22px;
+    margin-left: 20px;
+    font-size: 30px;
+    height: 30px;
+    width: 30px;
     border: none;
     border-radius: 3px;
+    color: rgb(44, 134, 186);
 }
 
-.add-task-plus-btn:hover {
+.add-task-plus-btn:hover, .section-options-three-dots-btn:hover {
     cursor: pointer; /* Show pointer cursor on hover */
     background-color: lightgray; /* Change background color on hover */
 }
 
 
 
-.task-overlay, .update-task-overlay {
+.task-overlay, .update-task-overlay, .home-overlay {
     justify-content: center !important;
     align-items: center !important;
 }
 
-.task-card {
+.task-card, .section-options-card, .overlay-card {
     
     background-color: #E9DC92;
     border-radius: 10px;
@@ -120,4 +121,25 @@
 
 .cancel-btn{
     background-color: red;
+}
+
+
+.section-options-card-each-btn{
+    width: 100%;
+    background-color: transparent;
+    cursor: pointer;
+    border: none;
+    padding: 10px;
+    border-radius: 3px;
+}
+
+.section-options-card-each-btn:hover{
+    background-color: aliceblue;
+    border: 3px solid lightblue;
+    box-shadow: 0 0 10px 1px;
+}
+
+.error-msg{
+    color: red;
+    font-size: 14px;
 }

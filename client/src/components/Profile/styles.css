@@ -10,7 +10,7 @@
     align-items: flex-start;
 }
 
-.profile-card{
+.profile-card, .overlay-card{
     border-radius: 10px;
     margin-top: 39px;
     background-color: bisque;
@@ -42,3 +42,4 @@
     margin-right: 3px;
     cursor: pointer;
 }
+

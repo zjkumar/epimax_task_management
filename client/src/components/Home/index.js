@@ -261,6 +261,61 @@ class Home extends Component{
         }
     }
 
+    createOverlay = () => {
+        const overlay = document.createElement('div')
+        
+        overlay.classList.add('overlay')
+        overlay.setAttribute('id', 'overlay')
+
+        document.body.appendChild(overlay)
+        
+        overlay.onclick = function(){
+          document.body.removeChild(overlay)
+          return null
+        }
+        return overlay
+    }
+
+    createCardOnOverlay = () => {
+        let cardOnOverlay = document.createElement('div')
+        cardOnOverlay.classList.add('task-card')
+
+        cardOnOverlay.addEventListener('click', (event) => {
+            event.stopPropagation(); // Stop event propagation to parent elements
+        });
+
+        return cardOnOverlay
+    }
+
+    createCardWithButtons = array => {
+        let buttonsCard = document.createElement('div')
+
+        for (let each of array){
+            let btn = document.createElement('button')
+            btn.classList.add('section-options-card-each-btn')
+            btn.textContent = each
+            buttonsCard.appendChild(btn)
+        }
+        return buttonsCard
+    }
+
+    createLabelInputs = array => {
+        
+        const inputLabelHolder = document.createElement('div')
+        for (let each of array){
+            const labelEl = document.createElement('label')
+            const inputEl = document.createElement('input')
+            inputEl.setAttribute('id', each)
+            labelEl.setAttribute('htmlFor', each)
+
+            labelEl.textContent = each
+
+            inputLabelHolder.appendChild(labelEl)
+            inputLabelHolder.appendChild(inputEl)
+        }
+
+        return inputLabelHolder
+    }
 
     displayInputToUpdateTheTask = (section_id, task_id, columnName) => {
         const updateTaskOverlay = document.createElement('div')
@@ -353,6 +408,143 @@ class Home extends Component{
         this.displayInputToUpdateTheTask(section_id, task_id, 'priority')
     }
 
+
+    // <div className='buttons-holder'>
+    //             <button type='button' onClick={() => {
+
+    //             }}>Save</button>
+    //             <button type='button' onClick={() => {
+
+    //             }}>Save</button>
+
+    //         </div>
+
+    modifySectionName = async (section_id, userInput) => {
+        console.log('hit the section name function')
+        // return
+        const url = 'http://localhost:3000/modifySection'
+        const token = Cookies.get('jwt_token')
+        const details = { section_id,  userInput}
+
+        console.log({section_id,  userInput})
+
+        const options = {
+            method: 'POST',
+            headers: {
+                'authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(details)
+        }
+
+        const response = await fetch(url, options)
+        const data = await response.json()
+
+        if (response.ok === true){
+            console.log('update success')
+            this.fetchSectionsAndTasks()
+        }else{
+            console.log(data)
+        }
+    }
+
+    displayOptionsForSection = (section_id) => {
+        const overlayForSectionOptions = this.createOverlay()
+        overlayForSectionOptions.classList.add('home-overlay')
+
+        document.body.appendChild(overlayForSectionOptions)
+
+        const sectionOptionsCard = this.createCardWithButtons(['Rename Section', 'Delete Section'])
+
+        sectionOptionsCard.classList.add('section-options-card')
+        // console.log(sectionOptionsCard.children)
+        // console.log(sectionOptionsCard)
+        // return
+
+        // Convert HTMLCollection to array
+        const buttonsArray = Array.from(sectionOptionsCard.children);
+
+        // access individual elements.
+        const renameSectionBtn = buttonsArray[0];
+        const deleteSectionBtn = buttonsArray[1];
+
+        renameSectionBtn.addEventListener('click', event => {
+            event.preventDefault(); // Prevent default form submission behavior
+            event.stopPropagation(); // Stop event propagation to parent elements
+            
+            // create overlay on top of current overlay
+            const overlayToRenameSection = this.createOverlay()
+            overlayToRenameSection.classList.add('home-overlay')
+
+            document.body.appendChild(overlayToRenameSection)
+
+            // create a card to display on the current overlay
+            const cardToRenameSection = this.createCardOnOverlay()
+            cardToRenameSection.classList.add('overlay-card')
+
+
+            overlayToRenameSection.appendChild(cardToRenameSection)
+
+
+            // create label and input elements 
+            const inputsToRename = this.createLabelInputs(['Rename Section'])
+            cardToRenameSection.appendChild(inputsToRename)
+
+            const buttonsHolder =  document.createElement('div') 
+            cardToRenameSection.appendChild(buttonsHolder)
+            
+            const saveBtn = document.createElement('button')
+            saveBtn.textContent = 'Save'
+            saveBtn.classList.add('save-btn')
+
+            const cancelBtn = document.createElement('button')
+            cancelBtn.textContent = 'Cancel'
+            cancelBtn.classList.add('cancel-btn')
+
+            buttonsHolder.appendChild(saveBtn)
+            buttonsHolder.appendChild(cancelBtn)
+
+
+            
+            saveBtn.addEventListener('click', event => {
+                let errorElId = 'errorParaEl'
+                event.preventDefault()
+                event.stopPropagation()
+
+                const userInput = document.getElementById('Rename Section').value
+                
+                let errorEl = document.createElement('p')
+                errorEl.setAttribute("id", errorElId)
+                
+                
+                if (userInput === ''){
+                    const hasChildWithId = Array.from(cardToRenameSection.children).some(child => child.id === 'errorParaEl');
+                    
+                    const errMsg = 'Section name cannot be empty'
+                    errorEl.textContent = errMsg
+                                   
+                    if (hasChildWithId){
+                        return
+                    }else{
+                        cardToRenameSection.appendChild(errorEl)
+                        errorEl.classList.add('error-msg')
+                    }
+                    return
+                }
+                errorEl.textContent = ''
+                document.body.removeChild(overlayToRenameSection)
+                document.body.removeChild(overlayForSectionOptions)
+                this.modifySectionName(section_id, userInput)
+            })
+            cancelBtn.addEventListener('click', event => {
+                event.preventDefault()
+                event.stopPropagation()
+                document.body.removeChild(overlayToRenameSection)           
+            })
+        })
+        overlayForSectionOptions.appendChild(sectionOptionsCard)
+    }
+
     render(){
         const {sections} = this.state
         return (
@@ -371,10 +563,17 @@ class Home extends Component{
                         const {section_id, section_name, tasks} = eachSectionObj
                         return <div className='task-section' key={section_name + section_id}>
                             <div className='section-name-btn-div'>
-                                <h1>{section_name}</h1>
+                                <h1 style={{color: "rgb(44, 134, 186)"}}>{section_name}</h1>
                                 <button className='add-task-plus-btn' type='button' onClick={() => {
                                     this.addTaskToSection(section_id)
                                 }}>+</button>
+                                <button className='section-options-three-dots-btn' type='button' onClick={() => {
+                                    this.displayOptionsForSection(section_id)
+                                }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-three-dots" viewBox="0 0 16 16">
+                                        <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                                    </svg>
+                                </button>
                             </div>
                             <ul className='sections-container'>
                                 {tasks.map((eachTaskObj, index) => {

@@ -1,47 +1,94 @@
 const express = require('express');
+const crypto = require('crypto');
 const bodyParser = require('body-parser');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const cors = require('cors')
 const app = express();
-const port = 3000;
+const port = process.env.port || 5000;
 
 const jwt = require('jsonwebtoken');
-const secretKey = 'your_secret_key';
+
+// Generate a secure random key of 32 bytes (256 bits)
+const key = crypto.randomBytes(32);
+
+// Convert the key to a Base64-encoded string
+// const secretKey = key.toString('base64');
+
+const secretKey = 'a_4_Acquire'
+
 
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
 
 // using cors
-app.use(cors())
+// app.use(cors())
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "OPTIONS, DELETE, POST, GET, PATCH, PUT");
+  // res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin, Authorization, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
+  next();
+})
 
 // Create MySQL connection pool
 const pool = mysql.createPool({
-    connectionLimit: 10,
-    host: 'srv873.hstgr.io',
-    user: 'u109247860_owner',
-    password: 'Sury@1729',
-    database: 'u109247860_epimax'
+
+    host: 'aiven-java-mysql-workshop-kumar-d59f.a.aivencloud.com',
+    user: 'avnadmin',
+    password: 'AVNS_nZOoqcmVXXLtttrfP7V',
+    database: 'epimax_task_management',
+    port: 25928,
+    waitForConnections: true, // Whether the pool should queue connections when all connections are in use
+  queueLimit: 0, // Maximum number of connection requests the pool will queue before returning an error
+  connectTimeout: 60000, // The maximum number of milliseconds before a timeout occurs during the connection phase
+  
 });
+
+// const createTableQuery = `
+//   CREATE TABLE IF NOT EXISTS users (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     full_name VARCHAR(255) NOT NULL,
+//     username VARCHAR(255) NOT NULL UNIQUE,
+//     connected_with VARCHAR(255)
+//   )
+// `;
+
+// // Execute the query to create the table
+// pool.query(createTableQuery, (err, results, fields) => {
+//   if (err) {
+//     console.error('Error creating table: ' + err.message);
+//     return;
+//   }
+//   console.log('Table created successfully');
+// });
 
 
 // middleware to extract user ID from JWT token
 const getUserIdFromToken = (request, response, next) => {
     let jwt_token;
     
-  const authHeader = request.headers["authorization"];
+  const authHeader = request.headers['authorization'];
+//   console.log(request.headers, 'these are request.headers')
 //   console.log(authHeader)
   if (authHeader !== undefined) {
     jwt_token = authHeader.split(" ")[1];
     // console.log(jwt_token)
   }
+
+    console.log(jwt_token, 'this is jwt token from client')
+  
+
   if (jwt_token === undefined) {
+    // console.log("jwt_token is not valid, consoling here")
     response.status(401);
     response.send("Invalid JWT Token");
   } else {
     jwt.verify(jwt_token, secretKey, async (error, payload) => {
       if (error) {
         console.log(error)
-        console.log('error occured here')
+        console.log('error occured when verifying the jwt token')
         response.status(401);
         response.send("Invalid JWT Token");
       } else {
@@ -309,11 +356,11 @@ app.post('/updateTask', getUserIdFromToken, async (req, res) => {
 
 
 // Route to login the user
-app.post('/login', (req, res) => {
+app.post('/login',  (req, res) => {
     
     const {username} = req.body;
    
-    pool.query(`SELECT * FROM users WHERE username = '${username}'`, (error, results, fields) => {
+     pool.query(`SELECT * FROM users WHERE username = '${username}'`, (error, results, fields) => {
         if (error) {
             console.error('Error finding user:', error);
             res.status(500).json({error: 'Failed to find user'});

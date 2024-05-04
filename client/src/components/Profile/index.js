@@ -25,13 +25,18 @@ const Profile = () => {
        nameEl.classList.add('username')
 
        let logoutBtn = document.createElement('button')
-       logoutBtn.onclick = function(){
+       logoutBtn.addEventListener('click', event => {
+        event.preventDefault()
+        event.stopPropagation()
+
+        document.body.removeChild(overlay)
         console.log('logout clicked')
-        
         Cookies.remove('jwt_token')
+
+        console.log(Cookies.get('jwt_token'), 'this is jwt token')
         Cookies.remove('username')
         navigate('/login')
-       }
+       })
 
        logoutBtn.textContent = 'Logout'
        logoutBtn.classList.add('logout-btn')

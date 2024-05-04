@@ -7,6 +7,11 @@ import {TailSpin} from 'react-loader-spinner'
 
 import './styles.css'
 
+const localhost = 'http://localhost:5000'
+const globalhost = 'https://epimax-task-management-backend.onrender.com'
+
+const currentHost = globalhost
+
 class Home extends Component{
     state = {
         sections: null,
@@ -22,14 +27,17 @@ class Home extends Component{
 
         console.log('fetching sections and tasks')
 
-        const url = 'http://localhost:3000/'
+        const url = currentHost
         const token = Cookies.get('jwt_token')
         
 
         const options = {
             method: 'GET',
+            mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'same-origin',
             headers: {
-                "authorization": `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json"
             }
         }
@@ -42,39 +50,21 @@ class Home extends Component{
         this.setState({sections})
     }
 
-    addUser = async () => {
-        let fullName = 'jagadeesh kumar'
-        let username = 'jk'
-
-        let details = {
-            fullName, username
-        }
-
-        let url = 'http://localhost:3000/create-user'
-
-        const options = {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json",
-              },
-            body: JSON.stringify(details)
-        }
-        const response = await fetch(url, options)
-        console.log(response, 'this is response')
-        const data = await response.json()
-        console.log(data)
-    }
+    
 
     saveTheTask = async (section_id, task, priority, assignee ) => {
         const token = Cookies.get('jwt_token')
-        const url = 'http://localhost:3000/save-task'
+        const url = currentHost + '/save-task'
 
         const details = {section_id, task, priority, assignee}
         const options = {
             method: 'POST',
+            mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'same-origin',
             headers: {
                 "Content-Type": "application/json",
-                "authorization": `Bearer ${token}`
+                Authorization: `Bearer ${token}`
               },
             
             body: JSON.stringify(details)
@@ -209,33 +199,33 @@ class Home extends Component{
 
     }
 
-    updateTheTask = async updatedSections => {
-        const url = 'http://localhost:3000/updateTask'
-        const token = Cookies.get('jwt_token')
-        const details = {updatedSections}
+    // updateTheTask = async updatedSections => {
+    //     const url = currentHost + '/updateTask'
+    //     const token = Cookies.get('jwt_token')
+    //     const details = {updatedSections}
 
-        const options = {
-            method: 'POST',
-            headers: {
-                'authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(details)
-        }
+    //     const options = {
+    //         method: 'POST',
+    //         headers: {
+    //             Authorization: `Bearer ${token}`,
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify(details)
+    //     }
 
-        const response = await fetch(url, options)
-        const data = await response.json()
+    //     const response = await fetch(url, options)
+    //     const data = await response.json()
 
-        if (response.ok === true){
-            console.log('update success')
-            this.fetchSectionsAndTasks()
-        }else{
-            console.log(data)
-        }
-    }
+    //     if (response.ok === true){
+    //         console.log('update success')
+    //         this.fetchSectionsAndTasks()
+    //     }else{
+    //         console.log(data)
+    //     }
+    // }
 
     updateTask = async (task_id, section_id, columnName, userInput) => {
-        const url = 'http://localhost:3000/updateTask'
+        const url = currentHost + '/updateTask'
         const token = Cookies.get('jwt_token')
         const details = {task_id, section_id, columnName, userInput}
 
@@ -243,8 +233,11 @@ class Home extends Component{
 
         const options = {
             method: 'POST',
+            mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'same-origin',
             headers: {
-                'authorization': `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(details)
@@ -422,7 +415,7 @@ class Home extends Component{
     modifySectionName = async (section_id, userInput) => {
         console.log('hit the section name function')
         // return
-        const url = 'http://localhost:3000/modifySection'
+        const url = currentHost + '/modifySection'
         const token = Cookies.get('jwt_token')
         const details = { section_id,  userInput}
 
@@ -430,8 +423,11 @@ class Home extends Component{
 
         const options = {
             method: 'POST',
+            mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'same-origin',
             headers: {
-                'authorization': `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(details)
@@ -449,7 +445,7 @@ class Home extends Component{
     }
 
     deleteSection = async (section_id) => {
-        const url = 'http://localhost:3000/deleteSection'
+        const url = currentHost + '/deleteSection'
         const token = Cookies.get('jwt_token')
         const details = { section_id}
 
@@ -457,8 +453,11 @@ class Home extends Component{
 
         const options = {
             method: 'DELETE',
+            mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'same-origin',
             headers: {
-                'authorization': `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 'section_id' : section_id
             }
@@ -638,7 +637,7 @@ class Home extends Component{
 
     clientRequestToCreateSection = async (userInput) => {
 
-        const url = 'http://localhost:3000/createNewSection'
+        const url = currentHost + '/createNewSection'
         const token = Cookies.get('jwt_token')
         const details = { userInput}
     
@@ -646,8 +645,11 @@ class Home extends Component{
     
         const options = {
             method: 'POST',
+            mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'same-origin',
             headers: {
-                'authorization': `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(details)

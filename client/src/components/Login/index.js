@@ -1,11 +1,21 @@
+
+
+
+
 import {Component} from 'react'
 import {Navigate} from 'react-router-dom'
 import Cookies from 'js-cookie'
 import withRouter from '../withRouter'
 
+
+
 import './index.css'
 
 
+const localhost = 'http://localhost:5000'
+const globalhost = 'https://epimax-task-management-backend.onrender.com'
+
+const currentHost = globalhost
 
 class Login extends Component {
   state = {newUser: false, username: '',fullname: '', showJoiningError: false, showLoginError: false, loginErrorMsg: '', joinErrorMsg: ''}
@@ -34,7 +44,7 @@ class Login extends Component {
     navigate("/")
   
   }
-
+// 
   onJoinFailure = errMsg => this.setState({showJoiningError: true, joinErrorMsg: errMsg})
 
   login = async () => {
@@ -46,22 +56,28 @@ class Login extends Component {
         return
     }
 
-    let apiUrl = 'http://localhost:3000/login'
+    let apiUrl = currentHost + '/login'
 
     const options = {
       method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'same-origin',
+      // timeout: 60000,
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(userDetails),
     }
     const response = await fetch(apiUrl, options)
-    const data = await response.json()
+    
     // console.log(data)
    
     if (response.ok === true) {
+      const data = await response.json()
       this.onLoginSuccess(data.jwt_token, data.username)
     } else {
+      const data = await response.json()
       this.onLoginFailure(data.error)
     }
   }
@@ -78,10 +94,13 @@ class Login extends Component {
             fullname, username
         }
 
-        let url = 'http://localhost:3000/create-user'
+        let url = currentHost + '/create-user'
 
         const options = {
             method: 'POST',
+            mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'same-origin',
             headers: {
                 "Content-Type": "application/json",
               },
@@ -93,7 +112,7 @@ class Login extends Component {
         console.log(data)
 
         if (response.ok === true) {
-            this.onJoinSuccess(data.jwt_token, data.username)
+            this.onJoinSuccess(data.token, data.username)
           } else {
             this.onJoinFailure(data.error)
           }
